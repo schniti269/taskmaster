@@ -17,6 +17,8 @@ defmodule TaskmasterWeb.CoreComponents do
   use Phoenix.Component
   use Gettext, backend: TaskmasterWeb.Gettext
 
+  import TaskmasterWeb, only: [verified_routes: 0]
+
   alias Phoenix.LiveView.JS
 
   @doc """
@@ -672,5 +674,140 @@ defmodule TaskmasterWeb.CoreComponents do
   """
   def translate_errors(errors, field) when is_list(errors) do
     for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
+  end
+
+  @doc """
+  Renders a dashboard grid for tasks.
+
+  ## Examples
+
+      <.dashboard
+        title="Task Dashboard"
+        tasks={@tasks}
+        categories={@categories}
+      />
+  """
+  attr :title, :string, required: true
+  attr :tasks, :list, required: true
+  attr :categories, :list, required: true
+
+  def dashboard(assigns) do
+    # Group tasks by category
+    categorized_tasks =
+      Enum.group_by(assigns.tasks, fn task ->
+        case task.category do
+          nil -> nil
+          category -> category.id
+        end
+      end)
+
+    assigns = assign(assigns, :categorized_tasks, categorized_tasks)
+
+    ~H"""
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold mb-4"><%= @title %></h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <%= for category <- @categories do %>
+          <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="p-4 text-white" style={"background-color: #{category.color}"}>
+              <h3 class="font-bold text-lg"><%= category.name %></h3>
+              <div class="text-sm opacity-75">
+                <%= length(Map.get(@categorized_tasks, category.id, [])) %> tasks
+              </div>
+            </div>
+            <div class="p-4 max-h-96 overflow-y-auto">
+              <%= if tasks = Map.get(@categorized_tasks, category.id) do %>
+                <ul class="space-y-3">
+                  <%= for task <- tasks do %>
+                    <li class="p-3 border rounded-md hover:bg-gray-50">
+                      <div class="flex items-center justify-between">
+                        <div>
+                          <h4 class="font-medium">
+                            <.link navigate={"/tasks/#{task.id}"} class="hover:text-brand">
+                              <%= task.title %>
+                            </.link>
+                          </h4>
+                          <p class="text-sm text-gray-500 truncate">
+                            <%= task.description %>
+                          </p>
+                          <%= if task.startdate do %>
+                            <p class="text-xs text-gray-400 mt-1">
+                              <%= Calendar.strftime(task.startdate, "%Y-%m-%d %H:%M") %>
+                            </p>
+                          <% end %>
+                        </div>
+                        <div>
+                          <span class={"inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium #{if task.is_done, do: "bg-green-100 text-green-800", else: "bg-yellow-100 text-yellow-800"}"}>
+                            <%= if task.is_done, do: "✓", else: "○" %>
+                          </span>
+                        </div>
+                      </div>
+                    </li>
+                  <% end %>
+                </ul>
+              <% else %>
+                <p class="text-gray-500 italic text-center py-4">No tasks in this category</p>
+              <% end %>
+            </div>
+            <div class="px-4 py-3 bg-gray-50 border-t">
+              <.link navigate={"/tasks/new"} class="text-sm text-brand hover:underline">
+                + Add task to <%= category.name %>
+              </.link>
+            </div>
+          </div>
+        <% end %>
+
+        <!-- Uncategorized Tasks -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+          <div class="p-4 bg-gray-200">
+            <h3 class="font-bold text-lg text-gray-700">Uncategorized</h3>
+            <div class="text-sm text-gray-500">
+              <%= length(Map.get(@categorized_tasks, nil, [])) %> tasks
+            </div>
+          </div>
+          <div class="p-4 max-h-96 overflow-y-auto">
+            <%= if tasks = Map.get(@categorized_tasks, nil) do %>
+              <ul class="space-y-3">
+                <%= for task <- tasks do %>
+                  <li class="p-3 border rounded-md hover:bg-gray-50">
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <h4 class="font-medium">
+                          <.link navigate={"/tasks/#{task.id}"} class="hover:text-brand">
+                            <%= task.title %>
+                          </.link>
+                        </h4>
+                        <p class="text-sm text-gray-500 truncate">
+                          <%= task.description %>
+                        </p>
+                        <%= if task.startdate do %>
+                          <p class="text-xs text-gray-400 mt-1">
+                            <%= Calendar.strftime(task.startdate, "%Y-%m-%d %H:%M") %>
+                          </p>
+                        <% end %>
+                      </div>
+                      <div>
+                        <span class={"inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium #{if task.is_done, do: "bg-green-100 text-green-800", else: "bg-yellow-100 text-yellow-800"}"}>
+                          <%= if task.is_done, do: "✓", else: "○" %>
+                        </span>
+                      </div>
+                    </div>
+                  </li>
+                <% end %>
+              </ul>
+            <% else %>
+              <p class="text-gray-500 italic text-center py-4">No uncategorized tasks</p>
+            <% end %>
+          </div>
+          <div class="px-4 py-3 bg-gray-50 border-t">
+            <.link navigate={"/tasks/new"} class="text-sm text-brand hover:underline">
+              + Add uncategorized task
+            </.link>
+          </div>
+        </div>
+      </div>
+    </section>
+    """
   end
 end

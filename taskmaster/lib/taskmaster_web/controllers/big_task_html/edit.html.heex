@@ -1,8 +1,8 @@
 <.header>
-  Edit Big task {@big_task.id}
+  Edit Big task <%= @big_task.id %>
   <:subtitle>Use this form to manage big_task records in your database.</:subtitle>
 </.header>
 
-<.big_task_form changeset={@changeset} action={~p"/big_tasks/#{@big_task}"} />
+<.big_task_form changeset={@changeset} action={"/big-tasks/#{@big_task.id}"} />
 
-<.back navigate={~p"/big_tasks"}>Back to big_tasks</.back>
+<.back navigate={"/big-tasks"}>Back to big_tasks</.back>

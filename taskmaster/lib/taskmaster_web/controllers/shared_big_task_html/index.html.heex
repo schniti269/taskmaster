@@ -1,0 +1,31 @@
+<.header>
+  Shared Big Tasks
+  <:subtitle>Tasks shared with other users</:subtitle>
+  <:actions>
+    <.link href={~p"/shared-big-tasks/new"}>
+      <.button>Share a Task</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table id="shared_big_tasks" rows={@shared_big_tasks} row_click={&JS.navigate(~p"/shared-big-tasks/#{&1}")}>
+  <:col :let={shared} label="Big Task">
+    <%= if shared.big_task, do: shared.big_task.title, else: "N/A" %>
+  </:col>
+  <:col :let={shared} label="Shared With">
+    <%= if shared.user, do: shared.user.username, else: "N/A" %>
+  </:col>
+  <:col :let={shared} label="Shared On">
+    <%= Calendar.strftime(shared.inserted_at, "%Y-%m-%d %H:%M") %>
+  </:col>
+  <:action :let={shared}>
+    <div class="sr-only">
+      <.link navigate={~p"/shared-big-tasks/#{shared}"}>Show</.link>
+    </div>
+  </:action>
+  <:action :let={shared}>
+    <.link href={~p"/shared-big-tasks/#{shared}"} method="delete" data-confirm="Are you sure you want to remove this share?">
+      Remove
+    </.link>
+  </:action>
+</.table> 

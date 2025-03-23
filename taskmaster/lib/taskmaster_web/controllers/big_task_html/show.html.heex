@@ -1,17 +1,145 @@
 <.header>
-  Big task {@big_task.id}
-  <:subtitle>This is a big_task record from your database.</:subtitle>
+  <%= @big_task.title %>
+  <:subtitle>Due: <%= Calendar.strftime(@big_task.duedate, "%B %d, %Y") %></:subtitle>
   <:actions>
-    <.link href={~p"/big_tasks/#{@big_task}/edit"}>
-      <.button>Edit big_task</.button>
+    <.link href={~p"/big-tasks/#{@big_task.id}/edit"}>
+      <.button>Edit</.button>
     </.link>
   </:actions>
 </.header>
 
-<.list>
-  <:item title="Title">{@big_task.title}</:item>
-  <:item title="Description">{@big_task.description}</:item>
-  <:item title="Duedate">{@big_task.duedate}</:item>
-</.list>
+<div class="my-6">
+  <div class="mb-4 text-gray-600">
+    <div class="font-medium mb-2">Description:</div>
+    <p class="pl-4"><%= @big_task.description %></p>
+  </div>
 
-<.back navigate={~p"/big_tasks"}>Back to big_tasks</.back>
+  <%
+    # Task calculations
+    tasks = @big_task.tasks
+    done_tasks = Enum.filter(tasks, & &1.is_done)
+    todo_tasks = Enum.filter(tasks, & !&1.is_done)
+    
+    # Time calculations
+    total_minutes = Enum.reduce(tasks, 0, fn task, acc -> acc + (task.length_in_min || 0) end)
+    done_minutes = Enum.reduce(done_tasks, 0, fn task, acc -> acc + (task.length_in_min || 0) end)
+    todo_minutes = total_minutes - done_minutes
+    
+    # Calculate completion percentage - use the one passed from controller if available
+    completed_percent = assigns[:completed_percent] || if total_minutes > 0, do: round((done_minutes / total_minutes) * 100), else: 0
+    
+    # Use minutes_per_day from controller if available
+    minutes_per_day = assigns[:minutes_per_day] || 0
+    
+    # If minutes_per_day is not provided, calculate it
+    minutes_per_day = if minutes_per_day == 0 do
+      # Calculate minutes per day until due date
+      today = DateTime.utc_now()
+      due_date = @big_task.duedate
+      days_difference = max(1, ceil(DateTime.diff(due_date, today, :second) / (60 * 60 * 24)))
+      round(todo_minutes / days_difference)
+    else
+      minutes_per_day
+    end
+  %>
+
+  <div class="my-6">
+    <div class="flex items-center justify-between mb-2">
+      <h3 class="text-lg font-semibold">Progress</h3>
+      <div class="text-sm">
+        <span class="font-medium"><%= completed_percent %>%</span> complete
+        (<span class="font-medium"><%= minutes_per_day %></span> min/day needed)
+      </div>
+    </div>
+    
+    <div class="flex overflow-hidden h-6 rounded-lg bg-gray-100">
+      <%= if length(todo_tasks) > 0 do %>
+        <%= for task <- todo_tasks do %>
+          <% 
+            task_percent = if total_minutes > 0, do: round((task.length_in_min / total_minutes) * 100), else: 0 
+            category_color = task.category && task.category.color || "bg-blue-500"
+            # Handle various color formats
+            bg_class = cond do
+              String.starts_with?(category_color, "bg-") -> category_color
+              String.starts_with?(category_color, "#") -> "bg-blue-500" # Default if hex
+              true -> "bg-#{category_color}-500" # Named color
+            end
+          %>
+          <div 
+            class={[bg_class, "hover:brightness-90 transition-all flex items-center justify-center text-white text-xs font-medium overflow-hidden cursor-pointer"]}
+            style={"width: #{task_percent}%;"}
+            title={"#{task.title} (#{task.length_in_min} min)"}
+          >
+            <%= if task_percent > 10 do %>
+              <.link navigate={~p"/tasks/#{task.id}"} class="block w-full h-full">
+                <%= task.title %>
+              </.link>
+            <% else %>
+              <.link navigate={~p"/tasks/#{task.id}"} class="block w-full h-full"></.link>
+            <% end %>
+          </div>
+        <% end %>
+      <% end %>
+      
+      <%= if done_minutes > 0 && total_minutes > 0 do %>
+        <div 
+          class="bg-green-500 flex items-center justify-center text-white text-xs font-medium hover:brightness-90 transition-all cursor-pointer"
+          style={"width: #{completed_percent}%"}
+        >
+          <%= if completed_percent > 10 do %>
+            <%= completed_percent %>%
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="mt-8">
+    <h3 class="text-lg font-semibold mb-4">Tasks</h3>
+    
+    <div class="grid gap-4 md:grid-cols-2">
+      <div>
+        <h4 class="font-medium text-gray-700 mb-2">To Do (<%= length(todo_tasks) %>)</h4>
+        <%= if length(todo_tasks) > 0 do %>
+          <div class="space-y-2">
+            <%= for task <- todo_tasks do %>
+              <div class="p-3 bg-white rounded-md border border-gray-200 shadow-sm hover:shadow-md transition-all">
+                <div class="flex items-center gap-2">
+                  <div class="h-3 w-3 rounded-full" style={"background-color: #{task.category && task.category.color || "#3b82f6"};"}></div>
+                  <div class="font-medium"><%= task.title %></div>
+                </div>
+                <div class="mt-1 text-sm text-gray-600 flex justify-between">
+                  <div><%= task.length_in_min %> minutes</div>
+                  <.link navigate={~p"/tasks/#{task.id}/edit"} class="text-blue-600 hover:underline">Edit</.link>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <p class="text-gray-500 italic">No tasks to do</p>
+        <% end %>
+      </div>
+      
+      <div>
+        <h4 class="font-medium text-gray-700 mb-2">Completed (<%= length(done_tasks) %>)</h4>
+        <%= if length(done_tasks) > 0 do %>
+          <div class="space-y-2">
+            <%= for task <- done_tasks do %>
+              <div class="p-3 bg-gray-50 rounded-md border border-gray-200">
+                <div class="flex items-center gap-2">
+                  <div class="h-3 w-3 rounded-full bg-green-500"></div>
+                  <div class="font-medium line-through text-gray-500"><%= task.title %></div>
+                </div>
+                <div class="mt-1 text-sm text-gray-400"><%= task.length_in_min %> minutes</div>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <p class="text-gray-500 italic">No completed tasks yet</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<.back navigate={~p"/big-tasks"}>Back to projects</.back>

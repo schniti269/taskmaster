@@ -12,7 +12,19 @@ defmodule Taskmaster.Categories do
     Repo.all(Category)
   end
 
+  def list_categories_with_preloads do
+    Repo.all(from c in Category, preload: [:owner, :tasks])
+  end
+
+  def list_categories_by_owner(owner_id) do
+    Repo.all(from c in Category, where: c.owner_id == ^owner_id, preload: [:owner, :tasks])
+  end
+
   def get_category!(id), do: Repo.get!(Category, id)
+
+  def get_category_with_preloads!(id) do
+    Repo.get!(Category, id) |> Repo.preload([:owner, :tasks])
+  end
 
   def create_category(attrs \\ %{}) do
     %Category{}

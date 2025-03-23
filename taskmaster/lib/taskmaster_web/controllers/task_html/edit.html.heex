@@ -3,6 +3,6 @@
   <:subtitle>Use this form to manage task records in your database.</:subtitle>
 </.header>
 
-<.task_form changeset={@changeset} action={~p"/tasks/#{@task}"} />
+<.task_form changeset={@changeset} action={~p"/tasks/#{@task}"} categories={@categories} big_tasks={@big_tasks} />
 
 <.back navigate={~p"/tasks"}>Back to tasks</.back>

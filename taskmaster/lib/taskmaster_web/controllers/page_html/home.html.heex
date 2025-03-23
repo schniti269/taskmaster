@@ -220,3 +220,86 @@
     </div>
   </div>
 </div>
+
+<.header>
+  Welcome to TaskMaster
+  <:subtitle>Your personal task management system</:subtitle>
+</.header>
+
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+  <div class="bg-white rounded-lg shadow-md p-6 flex flex-col items-center justify-center">
+    <div class="text-3xl font-bold text-brand mb-2"><%= @stats.total_tasks %></div>
+    <div class="text-gray-500 text-center">Total Tasks</div>
+  </div>
+  
+  <div class="bg-white rounded-lg shadow-md p-6 flex flex-col items-center justify-center">
+    <div class="text-3xl font-bold text-green-600 mb-2"><%= @stats.completed_tasks %></div>
+    <div class="text-gray-500 text-center">Completed Tasks</div>
+  </div>
+  
+  <div class="bg-white rounded-lg shadow-md p-6 flex flex-col items-center justify-center">
+    <div class="text-3xl font-bold text-blue-600 mb-2"><%= @stats.big_tasks %></div>
+    <div class="text-gray-500 text-center">Big Tasks</div>
+  </div>
+  
+  <div class="bg-white rounded-lg shadow-md p-6 flex flex-col items-center justify-center">
+    <div class="text-3xl font-bold text-purple-600 mb-2"><%= @stats.categories %></div>
+    <div class="text-gray-500 text-center">Categories</div>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+  <div class="lg:col-span-3 flex justify-between items-center">
+    <h2 class="text-xl font-bold">Quick Actions</h2>
+  </div>
+  
+  <.link navigate={~p"/tasks/new"} class="w-full">
+    <div class="bg-white rounded-lg shadow-md p-6 hover:bg-gray-50 transition-colors">
+      <div class="flex items-center">
+        <div class="bg-green-100 text-green-800 p-3 rounded-full mr-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="font-bold">New Task</h3>
+          <p class="text-gray-500 text-sm">Create a new task</p>
+        </div>
+      </div>
+    </div>
+  </.link>
+  
+  <.link navigate={~p"/big-tasks/new"} class="w-full">
+    <div class="bg-white rounded-lg shadow-md p-6 hover:bg-gray-50 transition-colors">
+      <div class="flex items-center">
+        <div class="bg-blue-100 text-blue-800 p-3 rounded-full mr-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="font-bold">New Big Task</h3>
+          <p class="text-gray-500 text-sm">Create a new big task</p>
+        </div>
+      </div>
+    </div>
+  </.link>
+  
+  <.link navigate={~p"/categories/new"} class="w-full">
+    <div class="bg-white rounded-lg shadow-md p-6 hover:bg-gray-50 transition-colors">
+      <div class="flex items-center">
+        <div class="bg-purple-100 text-purple-800 p-3 rounded-full mr-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="font-bold">New Category</h3>
+          <p class="text-gray-500 text-sm">Create a new category</p>
+        </div>
+      </div>
+    </div>
+  </.link>
+</div>
+
+<.dashboard title="Tasks by Category" tasks={@tasks} categories={@categories} />

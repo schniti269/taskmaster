@@ -1,25 +1,146 @@
 <.header>
-  Listing Big tasks
+  Projects
   <:actions>
-    <.link href={~p"/big_tasks/new"}>
-      <.button>New Big task</.button>
+    <.link href={~p"/big-tasks/new"}>
+      <.button>New Project</.button>
     </.link>
   </:actions>
 </.header>
 
-<.table id="big_tasks" rows={@big_tasks} row_click={&JS.navigate(~p"/big_tasks/#{&1}")}>
-  <:col :let={big_task} label="Title">{big_task.title}</:col>
-  <:col :let={big_task} label="Description">{big_task.description}</:col>
-  <:col :let={big_task} label="Duedate">{big_task.duedate}</:col>
-  <:action :let={big_task}>
-    <div class="sr-only">
-      <.link navigate={~p"/big_tasks/#{big_task}"}>Show</.link>
+<div class="mt-6 space-y-4">
+  <%= if Enum.empty?(@big_tasks) do %>
+    <div class="rounded-lg bg-gray-50 p-8 text-center">
+      <h3 class="text-lg font-medium text-gray-600 mb-2">No projects yet</h3>
+      <p class="text-gray-500 mb-4">Get started by creating your first project</p>
+      <.link href={~p"/big-tasks/new"}>
+        <.button>Create Project</.button>
+      </.link>
     </div>
-    <.link navigate={~p"/big_tasks/#{big_task}/edit"}>Edit</.link>
-  </:action>
-  <:action :let={big_task}>
-    <.link href={~p"/big_tasks/#{big_task}"} method="delete" data-confirm="Are you sure?">
-      Delete
-    </.link>
-  </:action>
-</.table>
+  <% else %>
+    <%= for big_task <- @big_tasks do %>
+      <% 
+        tasks = big_task.tasks
+        total_tasks = length(tasks)
+        done_tasks = Enum.count(tasks, & &1.is_done)
+        percent_complete = if total_tasks > 0, do: round((done_tasks / total_tasks) * 100), else: 0
+        
+        # Date formatting
+        due_date = big_task.duedate
+        today = DateTime.utc_now()
+        days_left = max(0, ceil(DateTime.diff(due_date, today, :second) / (60 * 60 * 24)))
+        
+        # Status color based on days left
+        status_color = cond do
+          DateTime.compare(due_date, today) == :lt -> "bg-red-100 text-red-800"  # Past due
+          days_left <= 2 -> "bg-yellow-100 text-yellow-800"  # Soon
+          true -> "bg-blue-100 text-blue-800"  # Future
+        end
+      %>
+      <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-all">
+        <div class="p-4 md:p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div class="flex-grow">
+            <div class="flex items-center gap-3">
+              <h3 class="text-lg font-semibold">
+                <.link navigate={~p"/big-tasks/#{big_task.id}"} class="hover:text-blue-600 transition-colors">
+                  <%= big_task.title %>
+                </.link>
+              </h3>
+              <span class={["text-xs px-2 py-1 rounded-full font-medium", status_color]}>
+                <%= if DateTime.compare(due_date, today) == :lt do %>
+                  Overdue
+                <% else %>
+                  <%= if days_left == 0, do: "Due today", else: "#{days_left} days left" %>
+                <% end %>
+              </span>
+            </div>
+            
+            <p class="text-gray-600 mt-1 line-clamp-2">
+              <%= big_task.description || "No description provided" %>
+            </p>
+            
+            <div class="mt-4 flex items-center gap-4">
+              <div class="flex items-center gap-2 text-sm text-gray-500">
+                <.icon name="hero-calendar" class="h-4 w-4" />
+                <%= Calendar.strftime(big_task.duedate, "%b %d, %Y") %>
+              </div>
+              
+              <div class="flex items-center gap-2 text-sm text-gray-500">
+                <.icon name="hero-clipboard-document-check" class="h-4 w-4" />
+                <%= done_tasks %> / <%= total_tasks %> tasks
+              </div>
+            </div>
+          </div>
+          
+          <div class="flex items-center gap-2">
+            <.link navigate={~p"/big-tasks/#{big_task.id}/edit"} class="text-gray-500 hover:text-gray-700">
+              <.icon name="hero-pencil-square" class="h-5 w-5" />
+            </.link>
+            <.link 
+              href={~p"/big-tasks/#{big_task.id}"} 
+              method="delete" 
+              data-confirm="Are you sure you want to delete this project?"
+              class="text-gray-500 hover:text-red-600"
+            >
+              <.icon name="hero-trash" class="h-5 w-5" />
+            </.link>
+          </div>
+        </div>
+        
+        <div class="h-2 bg-gray-100">
+          <% 
+            # Calculate task percentages for progress bar
+            todo_tasks = Enum.filter(big_task.tasks, & !&1.is_done)
+            done_tasks = Enum.filter(big_task.tasks, & &1.is_done)
+            
+            # Time calculations
+            total_minutes = Enum.reduce(big_task.tasks, 0, fn task, acc -> acc + (task.length_in_min || 0) end)
+            done_minutes = Enum.reduce(done_tasks, 0, fn task, acc -> acc + (task.length_in_min || 0) end)
+          %>
+          
+          <%= if length(todo_tasks) > 0 do %>
+            <%= for task <- todo_tasks do %>
+              <% 
+                task_percent = if total_minutes > 0, do: round((task.length_in_min / total_minutes) * 100), else: 0 
+                category_color = task.category && task.category.color || "#3b82f6"
+                # Handle various color formats
+                bg_class = cond do
+                  String.starts_with?(category_color, "bg-") -> category_color
+                  String.starts_with?(category_color, "#") -> "bg-blue-500" # Default if hex
+                  true -> "bg-#{category_color}-500" # Named color
+                end
+              %>
+              <div 
+                class={
+                  if !String.starts_with?(category_color, "#") do
+                    [bg_class, "h-full float-left hover:brightness-90 transition-all cursor-pointer"]
+                  else
+                    "h-full float-left hover:brightness-90 transition-all cursor-pointer"
+                  end
+                }
+                style={
+                  if String.starts_with?(category_color, "#") do
+                    "width: #{task_percent}%; background-color: #{category_color};"
+                  else
+                    "width: #{task_percent}%;"
+                  end
+                }
+                title={"#{task.title} (#{task.length_in_min} min)"}
+              >
+                <.link navigate={~p"/tasks/#{task.id}"} class="block w-full h-full"></.link>
+              </div>
+            <% end %>
+          <% end %>
+          
+          <%= if done_minutes > 0 && total_minutes > 0 do %>
+            <% done_percent = round((done_minutes / total_minutes) * 100) %>
+            <div 
+              class="h-full float-left bg-green-500 hover:brightness-90 transition-all cursor-pointer"
+              style={"width: #{done_percent}%;"}
+              title={"Completed: #{done_percent}%"}
+            ></div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+</div>

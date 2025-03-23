@@ -1,0 +1,25 @@
+<.simple_form :let={f} for={@changeset} action={@action}>
+  <.error :if={@changeset.action}>
+    Oops, something went wrong! Please check the errors below.
+  </.error>
+  
+  <.input 
+    field={f[:big_task_id]} 
+    type="select" 
+    label="Big Task" 
+    options={Enum.map(@big_tasks, fn big_task -> {big_task.title, big_task.id} end)} 
+    prompt="Select a big task to share"
+  />
+  
+  <.input 
+    field={f[:user_id]} 
+    type="select" 
+    label="Share with User" 
+    options={Enum.map(@users, fn user -> {user.username, user.id} end)}
+    prompt="Select a user to share with"
+  />
+  
+  <:actions>
+    <.button>Share Big Task</.button>
+  </:actions>
+</.simple_form> 

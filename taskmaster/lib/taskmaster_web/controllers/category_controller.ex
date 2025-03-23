@@ -5,7 +5,7 @@ defmodule TaskmasterWeb.CategoryController do
   alias Taskmaster.Categories.Category
 
   def index(conn, _params) do
-    categories = Categories.list_categories()
+    categories = Categories.list_categories_with_preloads()
     render(conn, :index, categories: categories)
   end
 
@@ -27,7 +27,7 @@ defmodule TaskmasterWeb.CategoryController do
   end
 
   def show(conn, %{"id" => id}) do
-    category = Categories.get_category!(id)
+    category = Categories.get_category_with_preloads!(id)
     render(conn, :show, category: category)
   end
 

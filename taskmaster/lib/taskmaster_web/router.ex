@@ -27,6 +27,7 @@ defmodule TaskmasterWeb.Router do
 
     # Task routes
     resources "/tasks", TaskController
+    put "/tasks/:id/complete", TaskController, :complete
 
     # Category routes
     resources "/categories", CategoryController

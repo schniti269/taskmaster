@@ -16,7 +16,15 @@ defmodule Taskmaster.Tasks do
     Repo.all(BigTask)
   end
 
+  def list_big_tasks_with_preloads do
+    Repo.all(from bt in BigTask, preload: [:owner, :shared_with, tasks: [:category]])
+  end
+
   def get_big_task!(id), do: Repo.get!(BigTask, id)
+
+  def get_big_task_with_preloads!(id) do
+    Repo.get!(BigTask, id) |> Repo.preload([:owner, :shared_with, tasks: [:category]])
+  end
 
   def create_big_task(attrs \\ %{}) do
     %BigTask{}
@@ -44,7 +52,31 @@ defmodule Taskmaster.Tasks do
     Repo.all(Task)
   end
 
+  def list_tasks_with_preloads do
+    Repo.all(from t in Task, preload: [:owner, :big_task, :category])
+  end
+
+  def list_tasks_by_category(category_id) do
+    Repo.all(from t in Task, where: t.category_id == ^category_id, preload: [:owner, :big_task, :category])
+  end
+
+  def list_tasks_by_big_task(big_task_id) do
+    Repo.all(from t in Task, where: t.big_task_id == ^big_task_id, preload: [:owner, :big_task, :category])
+  end
+
+  def list_completed_tasks do
+    Repo.all(from t in Task, where: t.is_done == true, preload: [:owner, :big_task, :category])
+  end
+
+  def list_incomplete_tasks do
+    Repo.all(from t in Task, where: t.is_done == false, preload: [:owner, :big_task, :category])
+  end
+
   def get_task!(id), do: Repo.get!(Task, id)
+
+  def get_task_with_preloads!(id) do
+    Repo.get!(Task, id) |> Repo.preload([:owner, :big_task, :category])
+  end
 
   def create_task(attrs \\ %{}) do
     %Task{}
@@ -69,10 +101,14 @@ defmodule Taskmaster.Tasks do
   # SharedBigTask functions
 
   def list_shared_big_tasks do
-    Repo.all(SharedBigTask)
+    Repo.all(SharedBigTask) |> Repo.preload([:big_task, :user])
   end
 
-  def get_shared_big_task!(id), do: Repo.get!(SharedBigTask, id)
+  def list_shared_big_tasks_by_user(user_id) do
+    Repo.all(from s in SharedBigTask, where: s.user_id == ^user_id, preload: [:big_task, :user])
+  end
+
+  def get_shared_big_task!(id), do: Repo.get!(SharedBigTask, id) |> Repo.preload([:big_task, :user])
 
   def create_shared_big_task(attrs \\ %{}) do
     %SharedBigTask{}

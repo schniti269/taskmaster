@@ -2,11 +2,36 @@
   <.error :if={@changeset.action}>
     Oops, something went wrong! Please check the errors below.
   </.error>
+  
   <.input field={f[:title]} type="text" label="Title" />
-  <.input field={f[:description]} type="text" label="Description" />
-  <.input field={f[:startdate]} type="datetime-local" label="Startdate" />
-  <.input field={f[:length_in_min]} type="number" label="Length in min" />
-  <.input field={f[:is_done]} type="checkbox" label="Is done" />
+  <.input field={f[:description]} type="textarea" label="Description" />
+  
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <.input field={f[:startdate]} type="datetime-local" label="Start Date" />
+    <.input field={f[:length_in_min]} type="number" label="Length (minutes)" />
+  </div>
+  
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <.input 
+      field={f[:category_id]} 
+      type="select" 
+      label="Category" 
+      options={Enum.map(@categories, fn c -> {c.name, c.id} end)}
+      prompt="Select a category (optional)"
+    />
+    
+    <.input 
+      field={f[:big_task_id]} 
+      type="select" 
+      label="Part of Big Task" 
+      options={Enum.map(@big_tasks, fn bt -> {bt.title, bt.id} end)}
+      prompt="Select a big task (optional)"
+    />
+  </div>
+  
+  <.input field={f[:is_done]} type="checkbox" label="Completed?" />
+  <.input field={f[:owner_id]} type="select" label="Owner" options={Taskmaster.Users.list_users() |> Enum.map(& {&1.username, &1.id})} />
+  
   <:actions>
     <.button>Save Task</.button>
   </:actions>

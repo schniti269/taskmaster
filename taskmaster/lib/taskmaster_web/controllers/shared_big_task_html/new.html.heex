@@ -1,0 +1,13 @@
+<.header>
+  Share a Big Task
+  <:subtitle>Allow another user to see and collaborate on a big task</:subtitle>
+</.header>
+
+<.shared_big_task_form 
+  changeset={@changeset} 
+  action={~p"/shared-big-tasks"} 
+  users={@users}
+  big_tasks={@big_tasks}
+/>
+
+<.back navigate={~p"/shared-big-tasks"}>Back to shared big tasks</.back> 

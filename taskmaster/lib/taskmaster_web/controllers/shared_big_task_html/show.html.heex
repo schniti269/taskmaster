@@ -1,0 +1,29 @@
+<.header>
+  Shared Big Task Details
+  <:subtitle>Information about this shared task</:subtitle>
+  <:actions>
+    <.link href={~p"/shared-big-tasks/#{@shared_big_task}"} method="delete" data-confirm="Are you sure?">
+      <.button class="bg-red-500 hover:bg-red-700">Remove Share</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Big Task">
+    <%= if @shared_big_task.big_task, do: @shared_big_task.big_task.title, else: "N/A" %>
+  </:item>
+  <:item title="Description">
+    <%= if @shared_big_task.big_task, do: @shared_big_task.big_task.description, else: "N/A" %>
+  </:item>
+  <:item title="Due Date">
+    <%= if @shared_big_task.big_task && @shared_big_task.big_task.duedate, do: Calendar.strftime(@shared_big_task.big_task.duedate, "%Y-%m-%d %H:%M"), else: "N/A" %>
+  </:item>
+  <:item title="Shared With">
+    <%= if @shared_big_task.user, do: @shared_big_task.user.username, else: "N/A" %>
+  </:item>
+  <:item title="Shared On">
+    <%= Calendar.strftime(@shared_big_task.inserted_at, "%Y-%m-%d %H:%M") %>
+  </:item>
+</.list>
+
+<.back navigate={~p"/shared-big-tasks"}>Back to shared big tasks</.back> 

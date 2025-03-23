@@ -94,6 +94,7 @@ defmodule TaskmasterWeb do
       alias Phoenix.LiveView.JS
 
       # Routes generation with the ~p sigil
+      import Phoenix.VerifiedRoutes
       unquote(verified_routes())
     end
   end
