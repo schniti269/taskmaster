@@ -1,0 +1,25 @@
+<.header>
+  Listing Big tasks
+  <:actions>
+    <.link href={~p"/big_tasks/new"}>
+      <.button>New Big task</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table id="big_tasks" rows={@big_tasks} row_click={&JS.navigate(~p"/big_tasks/#{&1}")}>
+  <:col :let={big_task} label="Title">{big_task.title}</:col>
+  <:col :let={big_task} label="Description">{big_task.description}</:col>
+  <:col :let={big_task} label="Duedate">{big_task.duedate}</:col>
+  <:action :let={big_task}>
+    <div class="sr-only">
+      <.link navigate={~p"/big_tasks/#{big_task}"}>Show</.link>
+    </div>
+    <.link navigate={~p"/big_tasks/#{big_task}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={big_task}>
+    <.link href={~p"/big_tasks/#{big_task}"} method="delete" data-confirm="Are you sure?">
+      Delete
+    </.link>
+  </:action>
+</.table>

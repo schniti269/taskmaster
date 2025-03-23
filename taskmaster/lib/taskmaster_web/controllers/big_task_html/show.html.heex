@@ -1,0 +1,17 @@
+<.header>
+  Big task {@big_task.id}
+  <:subtitle>This is a big_task record from your database.</:subtitle>
+  <:actions>
+    <.link href={~p"/big_tasks/#{@big_task}/edit"}>
+      <.button>Edit big_task</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Title">{@big_task.title}</:item>
+  <:item title="Description">{@big_task.description}</:item>
+  <:item title="Duedate">{@big_task.duedate}</:item>
+</.list>
+
+<.back navigate={~p"/big_tasks"}>Back to big_tasks</.back>
